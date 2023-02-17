@@ -8,7 +8,7 @@ fn main() {
     let secret_number = rand::thread_rng().gen_range(1..=100);
 
     loop {
-        println!("Please input your guess.");
+        println!("Please input your guess: ");
 
         let mut guess = String::new();
 
@@ -17,9 +17,16 @@ fn main() {
             .expect("Failed to read line");
         
         let guess: u32 = match guess.trim().parse() {
-            Ok(num) => num,
-            Err(_) => {
-                println!("Please type a number!");
+            Ok(num) => { 
+                let limit:u32 = 100;
+
+                if num > limit {
+                    println!("Please type a number lower than 100");
+                }
+                num
+            },
+            Err(e) => {
+                println!("{e}, Please type a number!" );
                 continue;
             },
         };
