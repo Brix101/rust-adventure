@@ -3,11 +3,18 @@ use std::cmp::Ordering;
 use std::io;
 
 fn main() {
-    println!("Guess the number!");
-
     let secret_number = rand::thread_rng().gen_range(1..=100);
-
     let mut guessed_time: u32 = 5;
+
+    let lowest_number = (secret_number / 10) * 10;
+    let highest_number = lowest_number + 10;
+
+    println!("Guess the number!");
+    println!(
+        "Hint, lowest number: {}, highest number:{}",
+        lowest_number, highest_number
+    );
+
     loop {
         let mut guess = String::new();
 
