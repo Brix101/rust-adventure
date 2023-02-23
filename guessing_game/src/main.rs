@@ -4,16 +4,13 @@ use std::io;
 
 fn main() {
     let secret_number = rand::thread_rng().gen_range(1..=100);
-    let mut guessed_time: u32 = 5;
+    let hint_number = rand::thread_rng().gen_range(1..=10);
+    let nearest_number = (secret_number / 10) * hint_number;
+    let mut guessed_time: u32 = 3;
 
-    let lowest_number = (secret_number / 10) * 10;
-    let highest_number = lowest_number + 10;
 
     println!("Guess the number!");
-    println!(
-        "Hint, lowest number: {}, highest number:{}",
-        lowest_number, highest_number
-    );
+    println!("Hint!, nearest: {}", nearest_number);
 
     loop {
         let mut guess = String::new();
@@ -21,6 +18,7 @@ fn main() {
         match guessed_time {
             0 => {
                 println!("Game Over!!!");
+                println!("Correct number: {}", secret_number);
                 break;
             }
             _ => {
