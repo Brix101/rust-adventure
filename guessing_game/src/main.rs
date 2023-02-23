@@ -3,62 +3,67 @@ use std::cmp::Ordering;
 use std::io;
 
 fn main() {
-    let secret_number = rand::thread_rng().gen_range(1..=100);
-    let hint_number = rand::thread_rng().gen_range(1..=10);
-    let nearest_number = (secret_number / 10) * hint_number;
-    let mut guessed_time: u32 = 3;
-
-
-    println!("Guess the number!");
-    println!("Hint!, nearest: {}", nearest_number);
-
     loop {
-        let mut guess = String::new();
+        let limit: u32 = 100;
+        let secret_number = rand::thread_rng().gen_range(1..=limit);
+        let hint_number = rand::thread_rng().gen_range(1..=10);
+        let nearest_number = (secret_number / 10) * hint_number;
+        let mut guessed_time: u32 = 10;
 
-        match guessed_time {
-            0 => {
-                println!("Game Over!!!");
-                println!("Correct number: {}", secret_number);
-                break;
-            }
-            _ => {
-                println!("Remaining guess {}", guessed_time);
-                println!("Please input your guess: ");
-                io::stdin()
-                    .read_line(&mut guess)
-                    .expect("Failed to read line");
-            }
-        }
+        println!("Guess the number!");
+        println!("Hint!: {}, {}", nearest_number, hint_number);
 
-        let guess: u32 = match guess.trim().parse() {
-            Ok(num) => {
-                let limit: u32 = 100;
+        loop {
+            let mut guess = String::new();
 
-                if num > limit {
-                    println!("Please type a number lower than 100");
+            match guessed_time {
+                0 => {
+                    println!("Game Over!!!");
+                    println!("Correct number: {}", secret_number);
+                    println!("-------------------------------------------------------------");
+                    break;
                 }
+                _ => {
+                    println!("Remaining guess {}", guessed_time);
+                    println!("Please input your guess: ");
+                    io::stdin()
+                        .read_line(&mut guess)
+                        .expect("Failed to read line");
+                }
+            }
 
-                guessed_time -= 1;
-                num
-            }
-            Err(e) => {
-                println!("{e}, Please type a number!");
-                continue;
-            }
-        };
+            let guess: u32 = match guess.trim().parse() {
+                Ok(num) => {
+                    if num > limit {
+                        println!("Please type a number lower than 100");
+                        continue;
+                    } else {
+                        guessed_time -= 1;
+                        num
+                    }
+                }
+                Err(e) => {
+                    println!("{e}, Please type a number!");
+                    continue;
+                }
+            };
 
-        println!("You guessed: {guess}");
+            println!("You guessed: {guess}");
 
-        match guess.cmp(&secret_number) {
-            Ordering::Less => {
-                println!("Too small!");
-            }
-            Ordering::Greater => {
-                println!("Too big!");
-            }
-            Ordering::Equal => {
-                println!("You win!");
-                break;
+            match guess.cmp(&secret_number) {
+                Ordering::Less => {
+                    println!("Too small!");
+                }
+                Ordering::Greater => {
+                    println!("Too big!");
+                }
+                Ordering::Equal => {
+                    println!("You win!");
+                    for _i in 1..10 {
+                        print!("xo")
+                    }
+                    break;
+                }
             }
         }
     }
