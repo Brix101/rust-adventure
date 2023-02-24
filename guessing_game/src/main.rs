@@ -32,7 +32,7 @@ fn main() {
         }
 
         if diffculty > 0 {
-            let (limit, secret_number, hint_number, nearest_number) = secret_generator();
+            let GeneratedSecret { limit, secret_number, hint_number, nearest_number } = secret_generator();
 
             println!("<>0<>0<>0<>0<>0<>0<>0<>0<>0<>0<>0<>0<>0<>0<>0<>0<>0<>0<>0<>");
             println!("Guess the number!");
@@ -99,11 +99,19 @@ fn main() {
     }
 }
 
-fn secret_generator() -> (u32, u32, u32, u32) {
+#[derive(Debug)]
+struct GeneratedSecret {
+    limit: u32,
+    secret_number: u32,
+    hint_number: u32,
+    nearest_number: u32
+}
+
+fn secret_generator() -> GeneratedSecret {
     let limit: u32 = 100;
     let secret_number = rand::thread_rng().gen_range(1..=limit);
     let hint_number = rand::thread_rng().gen_range(1..=10);
     let nearest_number = (secret_number / 10) * hint_number;
 
-    return (limit, secret_number, hint_number, nearest_number);
+    return GeneratedSecret { limit, secret_number, hint_number,  nearest_number }
 }
