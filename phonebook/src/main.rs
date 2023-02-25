@@ -1,9 +1,12 @@
-use sqlx::{migrate::MigrateDatabase, FromRow, Row, Sqlite, SqlitePool};
+use sqlx::{
+    migrate::MigrateDatabase, sqlite::SqliteQueryResult, FromRow, Pool, Row, Sqlite, SqlitePool,
+};
+use std::{borrow::Borrow, io};
 
 const DB_URL: &str = "sqlite://phonebook.db";
 
 #[derive(Clone, FromRow, Debug)]
-struct User {
+struct Contact {
     id: i64,
     name: String,
     number: String,
@@ -55,33 +58,108 @@ async fn main() {
         println!("[{}]: {:?}", idx, row.get::<String, &str>("name"));
     }
 
-    let result = sqlx::query("INSERT INTO users (name, number) VALUES (?,?)")
-        .bind("brix")
-        .bind("09514502870")
-        .execute(&db)
-        .await
-        .unwrap();
+    loop {
+        println!("<>0<>0<>0<>0<> Select Command <>0<>0<>0<>0<>0<>");
+        println!("== [1]Create | [2]Read | [3]Update | [4]Delete | [0]quit ==");
 
-    println!("Query result: {:?}", result);
+        let mut command_input = String::new();
+        io::stdin()
+            .read_line(&mut command_input)
+            .expect("Failed to read line");
 
-    let user_results = sqlx::query_as::<_, User>("SELECT * FROM users")
+        let command: u32 = match command_input.trim().parse() {
+            Ok(num) => num,
+            Err(e) => {
+                println!("{e}, Please type a number!");
+                continue;
+            }
+        };
+
+        match command {
+            1 => {
+                let result = create_contact(db.borrow().clone()).await;
+
+                println!("Query result: {:?}", result);
+
+                continue;
+            }
+            2 => {
+                let contacts = get_all_contact(db.borrow().clone()).await;
+
+                for contact in contacts {
+                    println!("[{}] name: {}, number: {}",contact.id, &contact.name, &contact.number);
+                }
+                continue;
+            }
+            3 => {
+                println!("Update to be emplemented");
+
+                continue;
+            }
+            4 => {
+                let result = delete_contact(db.borrow().clone()).await;
+
+                println!("Delete result: {:?}", result);
+
+                continue;
+            }
+            0 => break,
+            _ => continue,
+        }
+    }
+}
+
+async fn get_all_contact(db: Pool<Sqlite>) -> Vec<Contact> {
+    let contact_results = sqlx::query_as::<_, Contact>("SELECT * FROM users")
         .fetch_all(&db)
         .await
         .unwrap();
 
-    for user in user_results {
-        println!(
-            "[{}] name: {}, number: {}",
-            user.id, &user.name, &user.number
-        );
-    }
+    println!("===== Read =====");
+    return contact_results;
+}
 
-    // let delete_result = sqlx::query("DELETE FROM users WHERE name=$1")
-    //     .bind("bobby")
-    //     .execute(&db)
-    //     .await
-    //     .unwrap();
+async fn create_contact(db: Pool<Sqlite>) -> SqliteQueryResult {
 
-    // println!("Delete result: {:?}", delete_result);
+    let mut name_input = String::new();
+    let mut number_input = String::new();
+
+    println!("Name :");
+    io::stdin()
+        .read_line(&mut name_input)
+        .expect("Failed to read line");
+
+    println!("Number :");
+    io::stdin()
+        .read_line(&mut number_input)
+        .expect("Failed to read line");
+
+
+    let result = sqlx::query("INSERT INTO users (name, number) VALUES (?,?)")
+        .bind(name_input)
+        .bind(number_input)
+        .execute(&db)
+        .await
+        .unwrap();
+
+    return result;
+}
+
+async fn delete_contact(db: Pool<Sqlite>) -> SqliteQueryResult {
+    let mut delete_input = String::new();
+
+
+    println!("Id to delete: ");
+    io::stdin()
+        .read_line(&mut delete_input)
+        .expect("Failed to read line");
+
+    let result = sqlx::query("DELETE FROM users WHERE id=$1")
+        .bind(delete_input)
+        .execute(&db)
+        .await
+        .unwrap();
+
+    return result;
 }
 
