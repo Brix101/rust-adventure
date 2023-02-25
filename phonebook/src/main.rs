@@ -1,13 +1,12 @@
 use sqlx::{migrate::MigrateDatabase, FromRow, Row, Sqlite, SqlitePool};
 
-const DB_URL: &str = "sqlite://sqlite.db";
+const DB_URL: &str = "sqlite://phonebook.db";
 
 #[derive(Clone, FromRow, Debug)]
 struct User {
     id: i64,
     name: String,
-    lastname: String,
-    active: bool,
+    number: String,
 }
 
 #[tokio::main]
@@ -56,32 +55,33 @@ async fn main() {
         println!("[{}]: {:?}", idx, row.get::<String, &str>("name"));
     }
 
-    let result = sqlx::query("INSERT INTO users (name, lastname) VALUES (?,?)")
-        .bind("bobby")
-        .bind("fischer")
+    let result = sqlx::query("INSERT INTO users (name, number) VALUES (?,?)")
+        .bind("brix")
+        .bind("09514502870")
         .execute(&db)
         .await
         .unwrap();
 
     println!("Query result: {:?}", result);
 
-    let user_results = sqlx::query_as::<_, User>("SELECT id, name, lastname, active FROM users")
+    let user_results = sqlx::query_as::<_, User>("SELECT * FROM users")
         .fetch_all(&db)
         .await
         .unwrap();
 
     for user in user_results {
         println!(
-            "[{}] name: {}, lastname: {}, active: {}",
-            user.id, &user.name, &user.lastname, user.active
+            "[{}] name: {}, number: {}",
+            user.id, &user.name, &user.number
         );
     }
 
-    let delete_result = sqlx::query("DELETE FROM users WHERE name=$1")
-        .bind("bobby")
-        .execute(&db)
-        .await
-        .unwrap();
+    // let delete_result = sqlx::query("DELETE FROM users WHERE name=$1")
+    //     .bind("bobby")
+    //     .execute(&db)
+    //     .await
+    //     .unwrap();
 
-    println!("Delete result: {:?}", delete_result);
+    // println!("Delete result: {:?}", delete_result);
 }
+
