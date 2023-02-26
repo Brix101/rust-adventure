@@ -87,12 +87,17 @@ async fn main() {
                 let contacts = get_all_contact(db.borrow().clone()).await;
 
                 for contact in contacts {
-                    println!("[{}] name: {}, number: {}",contact.id, &contact.name, &contact.number);
+                    println!(
+                        "[{}] name: {}, number: {}",
+                        contact.id, &contact.name, &contact.number
+                    );
                 }
                 continue;
             }
             3 => {
-                println!("Update to be emplemented");
+                let result = update_contact(db.borrow().clone()).await;
+
+                println!("Update result : {:?}", result);
 
                 continue;
             }
@@ -110,17 +115,16 @@ async fn main() {
 }
 
 async fn get_all_contact(db: Pool<Sqlite>) -> Vec<Contact> {
-    let contact_results = sqlx::query_as::<_, Contact>("SELECT * FROM users")
+    let result = sqlx::query_as::<_, Contact>("SELECT * FROM users")
         .fetch_all(&db)
         .await
         .unwrap();
 
     println!("===== Read =====");
-    return contact_results;
+    return result;
 }
 
 async fn create_contact(db: Pool<Sqlite>) -> SqliteQueryResult {
-
     let mut name_input = String::new();
     let mut number_input = String::new();
 
@@ -134,7 +138,6 @@ async fn create_contact(db: Pool<Sqlite>) -> SqliteQueryResult {
         .read_line(&mut number_input)
         .expect("Failed to read line");
 
-
     let result = sqlx::query("INSERT INTO users (name, number) VALUES (?,?)")
         .bind(name_input)
         .bind(number_input)
@@ -147,7 +150,6 @@ async fn create_contact(db: Pool<Sqlite>) -> SqliteQueryResult {
 
 async fn delete_contact(db: Pool<Sqlite>) -> SqliteQueryResult {
     let mut delete_input = String::new();
-
 
     println!("Id to delete: ");
     io::stdin()
@@ -163,3 +165,33 @@ async fn delete_contact(db: Pool<Sqlite>) -> SqliteQueryResult {
     return result;
 }
 
+async fn update_contact(db: Pool<Sqlite>) -> SqliteQueryResult {
+    let mut id_input = String::new();
+    let mut name_input = String::new();
+    let mut number_input = String::new();
+
+    println!("Id :");
+    io::stdin()
+        .read_line(&mut id_input)
+        .expect("Failed to read line");
+
+    println!("Name :");
+    io::stdin()
+        .read_line(&mut name_input)
+        .expect("Failed to read line");
+
+    println!("Number :");
+    io::stdin()
+        .read_line(&mut number_input)
+        .expect("Failed to read line");
+
+    let result = sqlx::query("UPDATE users set name=$1, number=$2 WHERE id=$3")
+        .bind(name_input)
+        .bind(number_input)
+        .bind(id_input)
+        .execute(&db)
+        .await
+        .unwrap();
+
+    return result;
+}
